@@ -25,6 +25,8 @@ hs_err_pid*
 
 # misc
 *.ser
+*.xml
+*.iml
 
 .idea/
 ProjectWork.iml
