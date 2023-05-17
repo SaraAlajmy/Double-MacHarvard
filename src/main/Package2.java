@@ -115,22 +115,26 @@ public class Package2 {
     }
 
     public static void main (String[]args){
-        registers[0] = (byte) -128;
-        registers[1] = (byte) 128;
-        registers[2] = (byte) 64;
-        registers[3] = (byte) -64;
+        registers[0] = (byte) -64;
+        registers[1] = (byte) 64;
         execute((byte)0, (byte)0, (byte)1);
         System.out.println("adding:");
         System.out.println(registers[0]);
         System.out.println(Integer.toBinaryString(SREG));
-        execute((byte)1, (byte)1, (byte)2);
+        registers[0] = (byte) -64;
+        registers[1] = (byte) 64;
+        execute((byte)1, (byte)0, (byte)1);
         System.out.println("subtracting:");
         System.out.println(registers[1]);
         System.out.println(Integer.toBinaryString(SREG));
-        execute((byte)2, (byte)2, (byte)3);
+        registers[0] = (byte) -64;
+        registers[1] = (byte) 64;
+        execute((byte)2, (byte)0, (byte)1);
         System.out.println("multiplying:");
         System.out.println(registers[2]);
         System.out.println(Integer.toBinaryString(SREG));
+        registers[0] = (byte) -64;
+        registers[1] = (byte) 64;
         execute((byte)3, (byte)0, (byte)7);
         System.out.println("addingImm:");
         System.out.println(registers[0]);
