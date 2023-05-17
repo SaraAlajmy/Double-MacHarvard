@@ -8,7 +8,7 @@ public class Package2 {
     private static byte[] dataMemory = new byte[2048];
     private static byte[] registers = new byte[64];
     private static short pc = 0;
-    private byte SREG = 0;
+    private static byte SREG = 0;
 
 
     public void fetch(){
@@ -37,66 +37,101 @@ public class Package2 {
     }
 
     public void decode(short instruction){
-        // Part of the decode stage....
-
-        short opcode = 0;    // bits 15:12
-
-
-        // Implement the Sign Extend and Control Unit here:
-        short temp =0;
-        short R1 =0; // 11:6
-        short R2 =0 ;//6:0
         short immediate=0;//6:0
-        temp = (short) (instruction & 0b1111000000000000);
-        opcode = (short) (temp >>> 12) ;
-
-        temp = (short) (instruction & 0b0000111111000000);
-        R1 = (short) (temp >>> 6);
-        temp = (short) (instruction & 0b0000000000111111);
-        R2=temp;
-        immediate=temp;
-        execute(opcode, R1,R2,immediate);
-
+        short opcode = (short) ((instruction & 0b1111000000000000) >>> 12);  // bits 15:12
+        short R1 = (short) ((instruction & 0b0000111111000000) >>> 6); // 11:6
+        short R2orImm= (short) (instruction & 0b0000000000111111); //6:0
+        execute(opcode, R1, R2orImm);
     }
 
-    public static void execute(short opcode, short r1 ,short r2,short immediate){
+    public static void execute(short opcode, short r1 ,short r2orImm){
+        SREG = 0;
         switch (opcode){
-            case 0:registers[r1] = (byte) (registers[r1]+ registers[r2]);break;
-            case 1: registers[r1] = (byte)(registers[r1]+ registers[r2]);break;
-            case 2: registers[r1]=(byte)(registers[r1]* registers[r2]);break;
-            case 3: registers[r1]=(byte)(registers[immediate]);break;
-            case 4:  pc=(registers[r1]==0)?(byte) (pc+1+registers[immediate]):pc;break;
-            case 5:  registers[r1] = (byte) (registers[r1] &registers[r2]);break;
-            case 6 :registers[r1] = (byte) (registers[r1] | registers[r2]);break;
-            case 7 :pc=  concatenate(registers[r1],registers[r2]);break;
-            case 8 :registers[r1] = (byte) (registers[r1]<<immediate |registers[r1]>>>(8- immediate));break;
-            case 9 :registers[r1] = (byte) (registers[r1]>>> immediate| registers[r1]<<(8- immediate));break;
-            case 10: registers[r1]=  dataMemory[immediate] ;break;
-            case 11:  dataMemory[immediate] =  registers[r1];break;
+            case 0: registers[r1] = add(registers[r1], registers[r2orImm]);break;
+            case 1: registers[r1] = sub(registers[r1], registers[r2orImm]);break;
+            case 2: registers[r1]=(byte)(registers[r1]*registers[r2orImm]); updateNegAndZero(registers[r1]);break;
+            case 3: registers[r1]=(byte)r2orImm;break;
+            case 4: pc=(registers[r1]==0)?(byte) (pc+1+r2orImm):pc;break;
+            case 5: registers[r1] = (byte)(registers[r1] &registers[r2orImm]); updateNegAndZero(registers[r1]);break;
+            case 6: registers[r1] = (byte)(registers[r1] | registers[r2orImm]); updateNegAndZero(registers[r1]);break;
+            case 7: pc=  concatenate(registers[r1],registers[r2orImm]);break;
+            case 8: registers[r1] = (byte)(registers[r1]<<r2orImm |registers[r1]>>>(8- r2orImm)); updateNegAndZero(registers[r1]);break;
+            case 9: registers[r1] = (byte)(registers[r1]>>> r2orImm| registers[r1]<<(8- r2orImm)); updateNegAndZero(registers[r1]);break;
+            case 10: registers[r1]=  dataMemory[r2orImm] ;break;
+            case 11: dataMemory[r2orImm] =  registers[r1];break;
         }
 
     }
+
+    private static void updateCarry(byte a, byte b, short result){
+        int carry = ((result & 0b0000000100000000) >>> 8);
+        if(carry==1)
+            SREG = (byte)(SREG | 0b00010000);
+    }
+
+    private static void updateValid(byte a, byte b, short result){
+        int carry = ((result & 0b0000000100000000) >>> 8);
+        int bit6Carry = (((a&0b01000000)>>>6) + ((b&0b01000000)>>>6))>>1;
+        if((bit6Carry^carry) == 1)
+            SREG = (byte)(SREG | 0b00001000);
+    }
+
+    private static void updateNegAndZero(byte result){
+        if(result<0)
+            SREG = (byte)(SREG | 0b00000100);
+        if(result == 0)
+            SREG = (byte)(SREG | 0b00000001);
+    }
+
+    private static void updateSign(){
+        int neg = (SREG & 0b00000100) >>> 2;
+        int valid = (SREG & 0b00001000) >>> 3;
+        SREG = (byte)(SREG|((neg^valid) << 1));
+    }
+
+    public static byte add(byte a, byte b){
+        short result = (short)(a + b);
+        updateCarry(a, b, result);
+        updateValid(a, b, result);
+        updateNegAndZero((byte) result);
+        updateSign();
+        return (byte)result;
+    }
+
+    public static byte sub(byte a, byte b){
+        short result = (short)(a - b);
+        updateValid(a, b, result);
+        updateNegAndZero((byte) result);
+        updateSign();
+        return (byte)result;
+    }
+
+
     public static short concatenate(byte a , byte b){
-        short temp;
-
-        temp=(short) (a|0b0000000000000000);
-        temp=(short) (temp << 8);
-        temp=(short) (temp|b);
-        return temp;
-
-
-
+        return (short) ((a<<8)|b);
     }
 
     public static void main (String[]args){
-        registers[0]=0b00000100;
-        registers[1]=0b00001100;
-        execute((short)7,(short)0,(short)1,(short)1)  ;
-        System.out.print(pc);
-
-
-
-
+        registers[0] = (byte) -128;
+        registers[1] = (byte) 128;
+        registers[2] = (byte) 64;
+        registers[3] = (byte) -64;
+        execute((byte)0, (byte)0, (byte)1);
+        System.out.println("adding:");
+        System.out.println(registers[0]);
+        System.out.println(Integer.toBinaryString(SREG));
+        execute((byte)1, (byte)1, (byte)2);
+        System.out.println("subtracting:");
+        System.out.println(registers[1]);
+        System.out.println(Integer.toBinaryString(SREG));
+        execute((byte)2, (byte)2, (byte)3);
+        System.out.println("multiplying:");
+        System.out.println(registers[2]);
+        System.out.println(Integer.toBinaryString(SREG));
+        execute((byte)3, (byte)0, (byte)7);
+        System.out.println("addingImm:");
+        System.out.println(registers[0]);
+        System.out.println(Integer.toBinaryString(SREG));
     }
 }
 
