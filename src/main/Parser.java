@@ -8,14 +8,15 @@ import java.util.ArrayList;
 public class Parser {
 
     private ArrayList<Instruction> instructions = new ArrayList<Instruction>();
-    private ArrayList<String> binaryInstructions = new ArrayList<>();
+    public ArrayList<String> binaryInstructions = new ArrayList<>();
+    
     public Parser() {
         readFromTextFileToInstructionList();
     }
 
-    public ArrayList<Instruction> getGeneratedInstructions() {
-        return instructions;
-    }
+    // public ArrayList<Instruction> getGeneratedInstructions() {
+    //     return instructions;
+    // }
     public ArrayList<String> getBinaryInstructions() {
         return binaryInstructions;
     }
@@ -27,6 +28,8 @@ public class Parser {
         try (BufferedReader reader = new BufferedReader(new FileReader(filePath))) {
             String line;
             while ((line = reader.readLine()) != null) {
+            	if(line.length() == 0) continue;
+            	
                 String[] tokens = line.split(" ");
 
                 //set instruction type
@@ -55,26 +58,31 @@ public class Parser {
                     instruction = new Instruction(InstType.LB);
                 } else if(tokens[0].equalsIgnoreCase("sb")){
                     instruction = new Instruction(InstType.SB);
+                } else if(tokens[0].equalsIgnoreCase("nop")){
+                    instruction = new Instruction(InstType.NOP);
                 } else {
                     throw new IllegalArgumentException("Invalid instruction");
                 }
 
-                // set register 1
-                if(tokens[1].contains("R") || tokens[1].contains("r")) //if it contains R, remove it -- ex: R1 -> 1
-                    instruction.setReg1(Integer.parseInt(tokens[1].substring(1)));
-                else
-                    instruction.setReg1(Integer.parseInt(tokens[1]));
-                
-                //set immediate or register 2
-                if(instruction.isImmediateValid()){
-                    instruction.setImm(Byte.parseByte(tokens[2]));
-                } else {
-                    if(tokens[2].contains("R") || tokens[2].contains("r")) //if it contains R, remove it -- ex: R1 -> 1
-                        instruction.setReg2(Integer.parseInt(tokens[2].substring(1)));
+                if(instruction.getType() != InstType.NOP) {
+                    // set register 1 for all other than nop
+
+                    if(tokens[1].contains("R") || tokens[1].contains("r")) //if it contains R, remove it -- ex: R1 -> 1
+                        instruction.setReg1(Integer.parseInt(tokens[1].substring(1)));
                     else
-                        instruction.setReg2(Integer.parseInt(tokens[2]));
+                        instruction.setReg1(Integer.parseInt(tokens[1]));
+                    
+                    //set immediate or register 2
+
+                    if(instruction.isImmediateValid()){
+                        instruction.setImm(Byte.parseByte(tokens[2]));
+                    } else {
+                        if(tokens[2].contains("R") || tokens[2].contains("r")) //if it contains R, remove it -- ex: R1 -> 1
+                            instruction.setReg2(Integer.parseInt(tokens[2].substring(1)));
+                        else
+                            instruction.setReg2(Integer.parseInt(tokens[2]));
+                    }
                 }
-                
 
                 instructions.add(instruction);
                 binaryInstructions.add(instruction.getInstructionBits());

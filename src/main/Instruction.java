@@ -23,6 +23,15 @@ public class Instruction {
             immediateMakesSense = true;
         }
     }
+    public int getReg1(){
+        return reg1;
+    }
+    public int getReg2(){
+        return reg2;
+    }
+    public byte getImm(){
+        return immediateMakesSense? imm : 0;
+    }
     public void setReg1(int reg1){
         this.reg1 = reg1;
     }
@@ -59,7 +68,7 @@ public class Instruction {
         while(imm.length()<6){
             imm = "0" + imm;
         }
-        imm = imm.substring(0, 6);
+        if(imm.length() > 6)    imm = imm.substring(0, 6);
         return imm;
     }
 
@@ -89,6 +98,8 @@ public class Instruction {
                 return "1010";
             case SB:
                 return "1011";
+            case NOP:
+                return "1111"; //nop = 15
             default: 
                 return "0000";
         }

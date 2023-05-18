@@ -108,6 +108,7 @@ public class Package2 {
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 11: dataMemory[r2orImm] =  inR1;
 	            System.out.println("Data memory address '"+r2orImm+"' has been changed to: " +dataMemory[r2orImm]);break;
+            case 15: break; //nop
         }
     }
 
