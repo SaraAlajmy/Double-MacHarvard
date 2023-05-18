@@ -1,0 +1,3 @@
+ADD R1 R2
+sub R1 R2
+slc r1 6
