@@ -1,10 +1,5 @@
 package main;
 
-
-import java.io.BufferedReader;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.util.Vector;
 
 public class Package2 {
@@ -20,12 +15,20 @@ public class Package2 {
     static {
         loadData();
         pipeline();
+        
+        
+        //Printing all Registers and SREG and Instruction and Data Memory Locations
+        for(int i = 0; i< registers.length; i++) System.out.println("R" + i + ": "+ registers[i]);
+        System.out.println("PC: "+ pc);
+        System.out.println("SREG: "+byteToBinary(SREG));
+        for(int i = 0; i< instructionMemory.length; i++) System.out.println("Instruction " + i + ": "+ instructionMemory[i]);
+        for(int i = 0; i< dataMemory.length; i++) System.out.println("Data memory address " + i + ": "+ dataMemory[i]);
+        
     }
     public static void loadData(){
         Parser p = new Parser();
         for(int i = 0; i<p.getBinaryInstructions().size() && i<instructionMemory.length; i++) {
             instructionMemory[i] = (short) Integer.parseInt(p.getBinaryInstructions().get(i), 2);
-            System.out.println(instructionMemory[i]);
         }
         upperLimit = Math.min(p.getBinaryInstructions().size(), instructionMemory.length);
     }
@@ -51,6 +54,7 @@ public class Package2 {
                 System.out.println("Executing instruction: "+((short)values.get(1) - 1));
                 execute(((byte[]) values.get(0))[0], ((byte[]) values.get(0))[1], ((byte[]) values.get(0))[2], ((byte[]) values.get(0))[3], ((byte[]) values.get(0))[4], (short) values.get(1));
             }
+            System.out.println();
             instruction = tempInstruction; values = tempValues;
         }
     }
@@ -76,18 +80,28 @@ public class Package2 {
     public static void execute(byte opcode, short r1 ,short r2orImm, byte inR1, byte inR2, short pcOld){
         SREG = 0;
         switch (opcode){
-            case 0: registers[r1] = add(inR1, inR2);break;
-            case 1: registers[r1] = sub(inR1, inR2);break;
-            case 2: registers[r1]=(byte)(inR1*inR2); updateNegAndZero(registers[r1]);break;
-            case 3: registers[r1]=(byte)r2orImm;break;
+            case 0: registers[r1] = add(inR1, inR2);
+            	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
+            case 1: registers[r1] = sub(inR1, inR2);
+            	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
+            case 2: registers[r1]=(byte)(inR1*inR2); updateNegAndZero(registers[r1]);
+            	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
+            case 3: registers[r1]=(byte)r2orImm;
+            	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 4: if(inR1==0){pc = (byte) (pcOld+r2orImm);starting = 0;}break;
-            case 5: registers[r1] = (byte)(inR1 & inR2); updateNegAndZero(registers[r1]);break;
-            case 6: registers[r1] = (byte)(inR1 | inR2); updateNegAndZero(registers[r1]);break;
+            case 5: registers[r1] = (byte)(inR1 & inR2); updateNegAndZero(registers[r1]);
+            	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
+            case 6: registers[r1] = (byte)(inR1 | inR2); updateNegAndZero(registers[r1]);
+            	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 7: pc = concatenate(inR1, inR2); starting =0; break;
-            case 8: registers[r1] = (byte)(((inR1 & 0xFF)<<r2orImm) | ((inR1 & 0xFF)>>>(8- r2orImm))); updateNegAndZero(registers[r1]);break;
-            case 9: registers[r1] = (byte)(((inR1 & 0xFF)>>> r2orImm) | ((inR1 & 0xFF)<<(8- r2orImm))); updateNegAndZero(registers[r1]);break;
-            case 10: registers[r1]=  dataMemory[r2orImm] ;break;
-            case 11: dataMemory[r2orImm] =  inR1;break;
+            case 8: registers[r1] = (byte)(((inR1 & 0xFF)<<r2orImm) | ((inR1 & 0xFF)>>>(8- r2orImm))); updateNegAndZero(registers[r1]); 
+            	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
+            case 9: registers[r1] = (byte)(((inR1 & 0xFF)>>> r2orImm) | ((inR1 & 0xFF)<<(8- r2orImm))); updateNegAndZero(registers[r1]);
+            	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
+            case 10: registers[r1]=  dataMemory[r2orImm] ;
+            	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
+            case 11: dataMemory[r2orImm] =  inR1;
+	            System.out.println("Data memory address '"+r2orImm+"' has been changed to: " +dataMemory[r2orImm]);break;
         }
     }
 
@@ -141,12 +155,25 @@ public class Package2 {
         return (short) ((a<<8)|b);
     }
 
+    public static String byteToBinary(byte number) {
+        StringBuilder binary = new StringBuilder();
+        for (int i = 7; i >= 0; i--) {
+            binary.append((number & (1 << i)) != 0 ? "1" : "0");
+        }
+        return binary.toString();
+    }
+    
     public static void main (String[]args){
 //        System.out.println(Short.parseShort("1000000001000110", 2));
 //        System.out.println(Integer.toBinaryString(-1));
-        //       pipeline();
-//        registers[0] = (byte) -128;
+//          pipeline();
+//        registers[0] = (byte) 0b01000000;
 //        registers[1] = (byte) -128;
+//        dataMemory[0] = (byte) 5;
+//        
+//        pipeline();
+        
+        
 //        execute((byte)0, (byte)0, (byte)1);
 //        System.out.println("add:");
 //        System.out.println(registers[0]);
