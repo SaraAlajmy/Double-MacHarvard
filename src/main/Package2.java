@@ -40,24 +40,29 @@ public class Package2 {
             System.out.println("Cycle: "+(cycle+1));
             short[] tempInstruction = {0,0};
             Vector<Object> tempValues = new Vector<>();
-            if(cycle<upperLimit) {
+            if(pc<upperLimit) {
                 System.out.println("Fetching instruction: "+pc);
                 tempInstruction = fetch();
                 pcCopy = pc;
             }
             else{ pcCopy++;};
-            if(cycle<upperLimit+1 && starting>0) {
+            if(instruction[1]>0) {
                 System.out.println("Decoding instruction: "+(instruction[1] - 1));
                 tempValues = decode(instruction);
             }
-            if(starting>1) {
+            if(values.size()>1){
                 System.out.println("Executing instruction: "+((short)values.get(1) - 1));
                 execute(((byte[]) values.get(0))[0], ((byte[]) values.get(0))[1], ((byte[]) values.get(0))[2], ((byte[]) values.get(0))[3], ((byte[]) values.get(0))[4], (short) values.get(1));
+                if(pc< (short) values.get(1)){
+                    pcCopy = pc;
+                    starting = - 1;
+                }
             }
             System.out.println();
             instruction = tempInstruction; values = tempValues;
         }
     }
+
     public static short[] fetch(){
         short instruction = instructionMemory[pc];
         pc++;
