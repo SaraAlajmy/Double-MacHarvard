@@ -70,9 +70,11 @@ public class Package2 {
             SREG = (byte)(SREG | 0b00010000);
     }
 
-    private static void updateValid(byte a, byte b){
-        byte bit6Carry = (byte)((((a&0b01000000)>>>6) + ((b&0b01000000)>>>6))>>1);
-        byte bit7Carry = (byte)((((a&0b10000000)>>>7) + ((b&0b10000000)>>>7) + bit6Carry)>>1 );
+    private static void updateValid(byte a, byte b, short result){
+        byte bit6Carry = (byte)(((a&0b01111111) + (b&0b01111111))>>>7);
+      //  bit6Carry = (byte)((((a&0b01000000)>>>6) + ((b&0b01000000)>>>6))>>1);
+      //  byte bit7Carry = (byte)((((a&0b10000000)>>>7) + ((b&0b10000000)>>>7) + bit6Carry)>>1 );
+        byte bit7Carry = (byte)((result & 0b0000000100000000) >>> 8);
         if((bit6Carry^bit7Carry) == 1)
             SREG = (byte)(SREG | 0b00001000);
     }
@@ -93,7 +95,7 @@ public class Package2 {
     public static byte add(byte a, byte b){
         short result = (short)(a + b);
         updateCarry(a, b, result);
-        updateValid(a, b);
+        updateValid(a, b, result);
         updateNegAndZero((byte) result);
         updateSign();
         return (byte)result;
@@ -101,7 +103,7 @@ public class Package2 {
 
     public static byte sub(byte a, byte b){
         short result = (short)(a - b);
-        updateValid(a, b);
+        updateValid(a, b, result);
         updateNegAndZero((byte) result);
         updateSign();
         return (byte)result;
@@ -113,6 +115,12 @@ public class Package2 {
     }
 
     public static void main (String[]args){
+        registers[0] = (byte) -128;
+        registers[1] = (byte) -128;
+        execute((byte)0, (byte)0, (byte)1);
+        System.out.println("add:");
+        System.out.println(registers[0]);
+        System.out.println(Integer.toBinaryString(SREG));
 //        registers[0] = (byte) -127; //11111101
 //        registers[1] = (byte) 64;
 //        dataMemory[0] = (byte) 4;
