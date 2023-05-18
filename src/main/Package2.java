@@ -88,12 +88,13 @@ public class Package2 {
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 3: registers[r1]=(byte)r2orImm;
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
-            case 4: if(inR1==0){pc = (byte) (pcOld+r2orImm);starting = 0;}break;
+            case 4: if(inR1==0){pc = (byte) (pcOld+r2orImm);starting = 0; System.out.println("PC"+pc+" has been changed to: "+ pc);}break;
             case 5: registers[r1] = (byte)(inR1 & inR2); updateNegAndZero(registers[r1]);
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 6: registers[r1] = (byte)(inR1 | inR2); updateNegAndZero(registers[r1]);
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
-            case 7: pc = concatenate(inR1, inR2); starting =0; break;
+            case 7: pc = concatenate(inR1, inR2); starting =0; 
+            	System.out.println("PC"+pc+" has been changed to: "+ pc);break;
             case 8: registers[r1] = (byte)(((inR1 & 0xFF)<<r2orImm) | ((inR1 & 0xFF)>>>(8- r2orImm))); updateNegAndZero(registers[r1]); 
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 9: registers[r1] = (byte)(((inR1 & 0xFF)>>> r2orImm) | ((inR1 & 0xFF)<<(8- r2orImm))); updateNegAndZero(registers[r1]);
