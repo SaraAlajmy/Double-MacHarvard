@@ -13,7 +13,6 @@ public class Package2 {
     private static short pc = 0;
     private static byte SREG = 0;
 
-
     public void fetch(){
 // read from a txt file?
         try {
@@ -58,12 +57,11 @@ public class Package2 {
             case 5: registers[r1] = (byte)(registers[r1] &registers[r2orImm]); updateNegAndZero(registers[r1]);break;
             case 6: registers[r1] = (byte)(registers[r1] | registers[r2orImm]); updateNegAndZero(registers[r1]);break;
             case 7: pc=  concatenate(registers[r1],registers[r2orImm]);break;
-            case 8: registers[r1] = (byte)(registers[r1]<<r2orImm |registers[r1]>>>(8- r2orImm)); updateNegAndZero(registers[r1]);break;
-            case 9: registers[r1] = (byte)(registers[r1]>>> r2orImm| registers[r1]<<(8- r2orImm)); updateNegAndZero(registers[r1]);break;
+            case 8: registers[r1] = (byte)(((registers[r1] & 0xFF)<<r2orImm) | ((registers[r1] & 0xFF)>>>(8- r2orImm))); updateNegAndZero(registers[r1]);break;
+            case 9: registers[r1] = (byte)(((registers[r1] & 0xFF)>>> r2orImm) | ((registers[r1] & 0xFF)<<(8- r2orImm))); updateNegAndZero(registers[r1]);break;
             case 10: registers[r1]=  dataMemory[r2orImm] ;break;
             case 11: dataMemory[r2orImm] =  registers[r1];break;
         }
-
     }
 
     private static void updateCarry(byte a, byte b, short result){
@@ -72,10 +70,10 @@ public class Package2 {
             SREG = (byte)(SREG | 0b00010000);
     }
 
-    private static void updateValid(byte a, byte b, short result){
-        int carry = ((result & 0b0000000100000000) >>> 8);
-        int bit6Carry = (((a&0b01000000)>>>6) + ((b&0b01000000)>>>6))>>1;
-        if((bit6Carry^carry) == 1)
+    private static void updateValid(byte a, byte b){
+        byte bit6Carry = (byte)((((a&0b01000000)>>>6) + ((b&0b01000000)>>>6))>>1);
+        byte bit7Carry = (byte)((((a&0b10000000)>>>7) + ((b&0b10000000)>>>7) + bit6Carry)>>1 );
+        if((bit6Carry^bit7Carry) == 1)
             SREG = (byte)(SREG | 0b00001000);
     }
 
@@ -95,7 +93,7 @@ public class Package2 {
     public static byte add(byte a, byte b){
         short result = (short)(a + b);
         updateCarry(a, b, result);
-        updateValid(a, b, result);
+        updateValid(a, b);
         updateNegAndZero((byte) result);
         updateSign();
         return (byte)result;
@@ -103,7 +101,7 @@ public class Package2 {
 
     public static byte sub(byte a, byte b){
         short result = (short)(a - b);
-        updateValid(a, b, result);
+        updateValid(a, b);
         updateNegAndZero((byte) result);
         updateSign();
         return (byte)result;
@@ -115,30 +113,32 @@ public class Package2 {
     }
 
     public static void main (String[]args){
-        registers[0] = (byte) -64;
-        registers[1] = (byte) 64;
-        execute((byte)0, (byte)0, (byte)1);
-        System.out.println("adding:");
-        System.out.println(registers[0]);
-        System.out.println(Integer.toBinaryString(SREG));
-        registers[0] = (byte) -64;
-        registers[1] = (byte) 64;
-        execute((byte)1, (byte)0, (byte)1);
-        System.out.println("subtracting:");
-        System.out.println(registers[1]);
-        System.out.println(Integer.toBinaryString(SREG));
-        registers[0] = (byte) -64;
-        registers[1] = (byte) 64;
-        execute((byte)2, (byte)0, (byte)1);
-        System.out.println("multiplying:");
-        System.out.println(registers[2]);
-        System.out.println(Integer.toBinaryString(SREG));
-        registers[0] = (byte) -64;
-        registers[1] = (byte) 64;
-        execute((byte)3, (byte)0, (byte)7);
-        System.out.println("addingImm:");
-        System.out.println(registers[0]);
-        System.out.println(Integer.toBinaryString(SREG));
+//        registers[0] = (byte) -127; //11111101
+//        registers[1] = (byte) 64;
+//        dataMemory[0] = (byte) 4;
+//        execute((byte)8, (byte)0, (byte)1);
+//        System.out.println("slc:");
+//        System.out.println(registers[0]);
+//        System.out.println(Integer.toBinaryString(SREG));
+//        registers[0] = (byte) -127; // 11000000
+//        registers[1] = (byte) 64;
+//        execute((byte)9, (byte)0, (byte)1);
+//        System.out.println("src:");
+//        System.out.println(registers[0]);
+//        System.out.println(Integer.toBinaryString(SREG));
+//        registers[0] = (byte) -64;
+//        registers[1] = (byte) 64;
+//        execute((byte)10, (byte)0, (byte)0);
+//        System.out.println("lb:");
+//        System.out.println(registers[0]);
+//        System.out.println(Integer.toBinaryString(SREG));
+//        registers[0] = (byte) -64;
+//        registers[1] = (byte) 64;
+//        execute((byte)11, (byte)0, (byte)0);
+//        System.out.println("sb:");
+//        System.out.println(dataMemory[0]);
+//        System.out.println(Integer.toBinaryString(SREG));
+
     }
 }
 
