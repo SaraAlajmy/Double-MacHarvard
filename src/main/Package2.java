@@ -13,7 +13,24 @@ public class Package2 {
     private static short pc = 0;
     private static byte SREG = 0;
 
-    public void fetch(){
+    private static int starting = 0;
+
+    public static void pipeline(){
+        short instruction = 0;
+        byte[] values = {0,0,0,0,0};
+        for(int cycle = 0; cycle<instructionMemory.length+2; cycle++, starting++){
+            short tempInstruction =0;
+            byte[] tempValues = {0,0,0,0,0};
+            if(cycle<instructionMemory.length)
+                tempInstruction = fetch();
+            if(cycle<instructionMemory.length+1 && starting>0)
+                tempValues = decode(instruction);
+            if(starting>1)
+                execute(values[0], values[1], values[2], values[3], values[4]);
+            instruction = tempInstruction; values = tempValues;
+        }
+    }
+    public static short fetch(){
 // read from a txt file?
         try {
             BufferedReader br = new BufferedReader(new FileReader("input.txt"));
@@ -30,37 +47,40 @@ public class Package2 {
             e.printStackTrace();
         }
 
-        for(int i = 0; i < instructionMemory.length; i++) {
+//        for(int i = 0; i < instructionMemory.length; i++) {
             short instruction = instructionMemory[pc];
-            decode(instruction);
             pc++;
-        }
+            return instruction;
+//            decode(instruction);
+//        }
 
     }
 
-    public void decode(short instruction){
-        short immediate=0;//6:0
-        short opcode = (short) ((instruction & 0b1111000000000000) >>> 12);  // bits 15:12
-        short R1 = (short) ((instruction & 0b0000111111000000) >>> 6); // 11:6
-        short R2orImm= (short) (instruction & 0b0000000000111111); //6:0
-        execute(opcode, R1, R2orImm);
+    public static byte[] decode(short instruction){
+        byte opcode = (byte) ((instruction & 0b1111000000000000) >>> 12);  // bits 15:12
+        byte R1 = (byte) ((instruction & 0b0000111111000000) >>> 6); // 11:6
+        byte inR1 = registers[R1];
+        byte R2orImm= (byte) (instruction & 0b0000000000111111); //6:0
+        byte inR2 = registers[R2orImm];
+        return new byte[]{opcode,R1, R2orImm, inR1, inR2};
+        // excute(opcode,R1, R2orImm, inR1, inR2);
     }
 
-    public static void execute(short opcode, short r1 ,short r2orImm){
+    public static void execute(byte opcode, short r1 ,short r2orImm, byte inR1, byte inR2){
         SREG = 0;
         switch (opcode){
-            case 0: registers[r1] = add(registers[r1], registers[r2orImm]);break;
-            case 1: registers[r1] = sub(registers[r1], registers[r2orImm]);break;
-            case 2: registers[r1]=(byte)(registers[r1]*registers[r2orImm]); updateNegAndZero(registers[r1]);break;
+            case 0: registers[r1] = add(inR1, inR2);break;
+            case 1: registers[r1] = sub(inR1, inR2);break;
+            case 2: registers[r1]=(byte)(inR1*inR2); updateNegAndZero(registers[r1]);break;
             case 3: registers[r1]=(byte)r2orImm;break;
-            case 4: pc=(registers[r1]==0)?(byte) (pc+1+r2orImm):pc;break;
-            case 5: registers[r1] = (byte)(registers[r1] &registers[r2orImm]); updateNegAndZero(registers[r1]);break;
-            case 6: registers[r1] = (byte)(registers[r1] | registers[r2orImm]); updateNegAndZero(registers[r1]);break;
-            case 7: pc=  concatenate(registers[r1],registers[r2orImm]);break;
-            case 8: registers[r1] = (byte)(((registers[r1] & 0xFF)<<r2orImm) | ((registers[r1] & 0xFF)>>>(8- r2orImm))); updateNegAndZero(registers[r1]);break;
-            case 9: registers[r1] = (byte)(((registers[r1] & 0xFF)>>> r2orImm) | ((registers[r1] & 0xFF)<<(8- r2orImm))); updateNegAndZero(registers[r1]);break;
+            case 4: pc=(inR1==0)?(byte) (pc+r2orImm):pc;break;
+            case 5: registers[r1] = (byte)(inR1 & inR2); updateNegAndZero(registers[r1]);break;
+            case 6: registers[r1] = (byte)(inR1 | inR2); updateNegAndZero(registers[r1]);break;
+            case 7: pc = concatenate(inR1, inR2);break;
+            case 8: registers[r1] = (byte)(((inR1 & 0xFF)<<r2orImm) | ((inR1 & 0xFF)>>>(8- r2orImm))); updateNegAndZero(registers[r1]);break;
+            case 9: registers[r1] = (byte)(((inR1 & 0xFF)>>> r2orImm) | ((inR1 & 0xFF)<<(8- r2orImm))); updateNegAndZero(registers[r1]);break;
             case 10: registers[r1]=  dataMemory[r2orImm] ;break;
-            case 11: dataMemory[r2orImm] =  registers[r1];break;
+            case 11: dataMemory[r2orImm] =  inR1;break;
         }
     }
 
@@ -115,12 +135,13 @@ public class Package2 {
     }
 
     public static void main (String[]args){
-        registers[0] = (byte) -128;
-        registers[1] = (byte) -128;
-        execute((byte)0, (byte)0, (byte)1);
-        System.out.println("add:");
-        System.out.println(registers[0]);
-        System.out.println(Integer.toBinaryString(SREG));
+        pipeline();
+//        registers[0] = (byte) -128;
+//        registers[1] = (byte) -128;
+//        execute((byte)0, (byte)0, (byte)1);
+//        System.out.println("add:");
+//        System.out.println(registers[0]);
+//        System.out.println(Integer.toBinaryString(SREG));
 //        registers[0] = (byte) -127; //11111101
 //        registers[1] = (byte) 64;
 //        dataMemory[0] = (byte) 4;
