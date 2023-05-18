@@ -20,14 +20,21 @@ public class Package2 {
         short[] instruction = {0,0};
         Vector<Object> values = new Vector<>();
         for(int cycle = 0; cycle<instructionMemory.length+2; cycle++, starting++){
+            System.out.println("Cycle :"+(cycle+1));
             short[] tempInstruction = {0,0};
             Vector<Object> tempValues = new Vector<>();
-            if(cycle<instructionMemory.length)
+            if(cycle<instructionMemory.length) {
+                System.out.println("Fetching instruction: "+pc);
                 tempInstruction = fetch();
-            if(cycle<instructionMemory.length+1 && starting>0)
+            }
+            if(cycle<instructionMemory.length+1 && starting>0) {
+                System.out.println("Decoding instruction: "+(instruction[1] - 1));
                 tempValues = decode(instruction);
-            if(starting>1)
-                execute(((byte[])tempValues.get(0))[0], ((byte[])tempValues.get(0))[1], ((byte[])tempValues.get(0))[2], ((byte[])tempValues.get(0))[3], ((byte[])tempValues.get(0))[4], (short)tempValues.get(1));
+            }
+            if(starting>1) {
+                System.out.println("Executing instruction: "+((short)values.get(1)));
+                execute(((byte[]) tempValues.get(0))[0], ((byte[]) tempValues.get(0))[1], ((byte[]) tempValues.get(0))[2], ((byte[]) tempValues.get(0))[3], ((byte[]) tempValues.get(0))[4], (short) tempValues.get(1));
+            }
             instruction = tempInstruction; values = tempValues;
         }
     }
