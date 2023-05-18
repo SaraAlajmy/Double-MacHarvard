@@ -16,10 +16,19 @@ public class Package2 {
 
     private static int starting = 0;
 
+    static {
+        loadData();
+    }
+    public static void loadData(){
+        Parser p = new Parser();
+        for(int i = 0; i<p.getBinaryInstructions().size() && i<instructionMemory.length; i++)
+            instructionMemory[i] = Short.parseShort(p.getBinaryInstructions().get(i), 2);
+        System.out.println("worked");
+    }
     public static void pipeline(){
         short[] instruction = {0,0};
         Vector<Object> values = new Vector<>();
-        for(int cycle = 0; cycle<instructionMemory.length+2; cycle++, starting++){
+        for(int cycle = 0; pc<instructionMemory.length+2; cycle++, starting++){
             System.out.println("Cycle :"+(cycle+1));
             short[] tempInstruction = {0,0};
             Vector<Object> tempValues = new Vector<>();
@@ -39,29 +48,9 @@ public class Package2 {
         }
     }
     public static short[] fetch(){
-// read from a txt file?
-        try {
-            BufferedReader br = new BufferedReader(new FileReader("input.txt"));
-            String assemblyline;
-            while (( assemblyline= br.readLine() ) != null){
-
-
-            }
-        } catch (FileNotFoundException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        } catch (IOException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        }
-
-//        for(int i = 0; i < instructionMemory.length; i++) {
-            short instruction = instructionMemory[pc];
-            pc++;
-            return new short[]{instruction, pc};
-//            decode(instruction);
-//        }
-
+        short instruction = instructionMemory[pc];
+        pc++;
+        return new short[]{instruction, pc};
     }
 
     public static Vector decode(short[] instruction){
@@ -146,7 +135,8 @@ public class Package2 {
     }
 
     public static void main (String[]args){
-        pipeline();
+        System.out.println(Integer.toBinaryString(-1));
+        //       pipeline();
 //        registers[0] = (byte) -128;
 //        registers[1] = (byte) -128;
 //        execute((byte)0, (byte)0, (byte)1);

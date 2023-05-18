@@ -59,37 +59,38 @@ public class Instruction {
         while(imm.length()<6){
             imm = "0" + imm;
         }
+        imm = imm.substring(0, 6);
         return imm;
     }
 
     private String generateOPCODE(){
         switch(type){
             case ADD:
-                return "000000";
+                return "0000";
             case SUB:
-                return "000001";
+                return "0001";
             case MUL:
-                return "000010";
+                return "0010";
             case LDI:
-                return "000011";
+                return "0011";
             case BEQZ:
-                return "000100";
+                return "0100";
             case AND:
-                return "000101";
+                return "0101";
             case OR:
-                return "000110";
+                return "0110";
             case JR:
-                return "000111";
+                return "0111";
             case SLC:
-                return "001000";
+                return "1000";
             case SRC:
-                return "001001";
+                return "1001";
             case LB:
-                return "001010";
+                return "1010";
             case SB:
-                return "001011";
+                return "1011";
             default: 
-                return "000000";
+                return "0000";
         }
     }
     
