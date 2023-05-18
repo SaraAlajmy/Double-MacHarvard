@@ -13,36 +13,43 @@ public class Package2 {
     private static byte[] registers = new byte[64];
     private static short pc = 0;
     private static byte SREG = 0;
+    static int upperLimit;
 
     private static int starting = 0;
 
     static {
         loadData();
+        pipeline();
     }
     public static void loadData(){
         Parser p = new Parser();
-        for(int i = 0; i<p.getBinaryInstructions().size() && i<instructionMemory.length; i++)
-            instructionMemory[i] = Short.parseShort(p.getBinaryInstructions().get(i), 2);
-        System.out.println("worked");
+        for(int i = 0; i<p.getBinaryInstructions().size() && i<instructionMemory.length; i++) {
+            instructionMemory[i] = (short) Integer.parseInt(p.getBinaryInstructions().get(i), 2);
+            System.out.println(instructionMemory[i]);
+        }
+        upperLimit = Math.min(p.getBinaryInstructions().size(), instructionMemory.length);
     }
     public static void pipeline(){
         short[] instruction = {0,0};
         Vector<Object> values = new Vector<>();
-        for(int cycle = 0; pc<instructionMemory.length+2; cycle++, starting++){
-            System.out.println("Cycle :"+(cycle+1));
+        int pcCopy = 0;
+        for(int cycle = 0; pcCopy<upperLimit+2 ; cycle++, starting++){
+            System.out.println("Cycle: "+(cycle+1));
             short[] tempInstruction = {0,0};
             Vector<Object> tempValues = new Vector<>();
-            if(cycle<instructionMemory.length) {
+            if(cycle<upperLimit) {
                 System.out.println("Fetching instruction: "+pc);
                 tempInstruction = fetch();
+                pcCopy = pc;
             }
-            if(cycle<instructionMemory.length+1 && starting>0) {
+            else{ pcCopy++;};
+            if(cycle<upperLimit+1 && starting>0) {
                 System.out.println("Decoding instruction: "+(instruction[1] - 1));
                 tempValues = decode(instruction);
             }
             if(starting>1) {
-                System.out.println("Executing instruction: "+((short)values.get(1)));
-                execute(((byte[]) tempValues.get(0))[0], ((byte[]) tempValues.get(0))[1], ((byte[]) tempValues.get(0))[2], ((byte[]) tempValues.get(0))[3], ((byte[]) tempValues.get(0))[4], (short) tempValues.get(1));
+                System.out.println("Executing instruction: "+((short)values.get(1) - 1));
+                execute(((byte[]) values.get(0))[0], ((byte[]) values.get(0))[1], ((byte[]) values.get(0))[2], ((byte[]) values.get(0))[3], ((byte[]) values.get(0))[4], (short) values.get(1));
             }
             instruction = tempInstruction; values = tempValues;
         }
@@ -135,7 +142,8 @@ public class Package2 {
     }
 
     public static void main (String[]args){
-        System.out.println(Integer.toBinaryString(-1));
+//        System.out.println(Short.parseShort("1000000001000110", 2));
+//        System.out.println(Integer.toBinaryString(-1));
         //       pipeline();
 //        registers[0] = (byte) -128;
 //        registers[1] = (byte) -128;
