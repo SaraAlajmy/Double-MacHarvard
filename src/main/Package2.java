@@ -9,8 +9,8 @@ public class Package2 {
     private static short pc = 0;
     private static byte SREG = 0;
     static int upperLimit;
-
-    private static int starting = 0;
+    static short[] instruction = null;
+    static Vector<Object> values = new Vector<>();
 
     static {
         loadData();
@@ -33,10 +33,8 @@ public class Package2 {
         upperLimit = Math.min(p.getBinaryInstructions().size(), instructionMemory.length);
     }
     public static void pipeline(){
-        short[] instruction = {0,0};
-        Vector<Object> values = new Vector<>();
         int pcCopy = 0;
-        for(int cycle = 0; pcCopy<upperLimit+2 ; cycle++, starting++){
+        for(int cycle = 0; pcCopy<upperLimit+2 ; cycle++){
             System.out.println("Cycle: "+(cycle+1));
             short[] tempInstruction = {0,0};
             Vector<Object> tempValues = new Vector<>();
@@ -46,16 +44,15 @@ public class Package2 {
                 pcCopy = pc;
             }
             else{ pcCopy++;};
-            if(instruction[1]>0) {
+            if(instruction!=null) {
                 System.out.println("Decoding instruction: "+(instruction[1] - 1));
                 tempValues = decode(instruction);
             }
-            if(values.size()>1){
+            if(values.size()>0){
                 System.out.println("Executing instruction: "+((short)values.get(1) - 1));
                 execute(((byte[]) values.get(0))[0], ((byte[]) values.get(0))[1], ((byte[]) values.get(0))[2], ((byte[]) values.get(0))[3], ((byte[]) values.get(0))[4], (short) values.get(1));
                 if(pc< (short) values.get(1)){
                     pcCopy = pc;
-                    starting = - 1;
                 }
             }
             System.out.println();
@@ -93,12 +90,12 @@ public class Package2 {
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 3: registers[r1]=(byte)r2orImm;
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
-            case 4: if(inR1==0){pc = (byte) (pcOld+r2orImm);starting = 0; System.out.println("PC"+pc+" has been changed to: "+ pc);}break;
+            case 4: if(inR1==0){pc = (byte) (pcOld+r2orImm);instruction = null; values.removeAll(values); System.out.println("PC"+pc+" has been changed to: "+ pc);}break;
             case 5: registers[r1] = (byte)(inR1 & inR2); updateNegAndZero(registers[r1]);
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 6: registers[r1] = (byte)(inR1 | inR2); updateNegAndZero(registers[r1]);
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
-            case 7: pc = concatenate(inR1, inR2); starting =0; 
+            case 7: pc = concatenate(inR1, inR2); instruction = null; values.removeAll(values);
             	System.out.println("PC"+pc+" has been changed to: "+ pc);break;
             case 8: registers[r1] = (byte)(((inR1 & 0xFF)<<r2orImm) | ((inR1 & 0xFF)>>>(8- r2orImm))); updateNegAndZero(registers[r1]); 
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
