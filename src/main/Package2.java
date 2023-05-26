@@ -13,6 +13,7 @@ public class Package2 {
     static Vector<Object> values = new Vector<>();
     static int pcCopy = 0;
     static boolean reset = false;
+    private static final boolean HAZARDS_DETECTION_ENABLED = true;
 
     static {
         registers[10] =3;
@@ -29,7 +30,8 @@ public class Package2 {
         
     }
     public static void loadData(){
-        Parser p = new Parser();
+        Parser p = new Parser(HAZARDS_DETECTION_ENABLED);
+
         for(int i = 0; i<p.getBinaryInstructions().size() && i<instructionMemory.length; i++) {
             instructionMemory[i] = (short) Integer.parseInt(p.getBinaryInstructions().get(i), 2);
         }
