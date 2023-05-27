@@ -13,9 +13,9 @@ public class Package2 {
     static Vector<Object> values = new Vector<>();
     static int pcCopy = 0;
     static boolean reset = false;
-    private static final boolean HAZARDS_DETECTION_ENABLED = true;
+    private static final boolean HAZARDS_DETECTION_ENABLED = false;
 
-    static {
+    /*static {
         registers[10] =3;
         loadData();
         pipeline();
@@ -28,7 +28,7 @@ public class Package2 {
         for(int i = 0; i< instructionMemory.length; i++) System.out.println("Instruction " + i + ": "+ instructionMemory[i]);
         for(int i = 0; i< dataMemory.length; i++) System.out.println("Data memory address " + i + ": "+ dataMemory[i]);
         
-    }
+    }*/
     public static void loadData(){
         Parser p = new Parser(HAZARDS_DETECTION_ENABLED);
 
@@ -98,6 +98,10 @@ public class Package2 {
             case 6: registers[r1] = (byte)(inR1 | inR2); updateNegAndZero(registers[r1]);
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 7: pc = concatenate(inR1, inR2); pcCopy = pc; reset = true;
+            	if(HAZARDS_DETECTION_ENABLED ) {
+            		pc = setPCWithNewAddress(pc);
+            		pcCopy = pc;
+            	}
             	System.out.println("PC"+pc+" has been changed to: "+ pc);break;
             case 8: registers[r1] = (byte)(((inR1 & 0xFF)<<r2orImm) | ((inR1 & 0xFF)>>>(8- r2orImm))); updateNegAndZero(registers[r1]); 
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
@@ -111,7 +115,17 @@ public class Package2 {
         }
     }
 
-    private static void updateCarry(byte a, byte b, short result){
+    private static short setPCWithNewAddress(short oldPC) {
+    	oldPC++;
+    	int i;
+		for(i=0; i<instructionMemory.length &&  oldPC!=0; i++) {
+			if(instructionMemory[i]>>12 !=  0b1111) {
+				oldPC--;
+			}
+		}
+		return (short)i;
+	}
+	private static void updateCarry(byte a, byte b, short result){
         int carry = ((result & 0b0000000100000000) >>> 8);
         if(carry==1)
             SREG = (byte)(SREG | 0b00010000);

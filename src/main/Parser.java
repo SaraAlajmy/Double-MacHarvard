@@ -118,6 +118,9 @@ public class Parser {
 
             return id.equals(((Pair)obj).id);
         }
+        public String toString() {
+			return "("+id +", "+ instruction+")";
+		}
     }
 
     private void preprocessInstructionsForDataHazards(ArrayList<Instruction> original, ArrayList<String> originalBinary) {
@@ -132,7 +135,7 @@ public class Parser {
         for (int i = 0; i < size-1; i++) {
             instructionsWithNOPS.add(new Pair(i, original.get(i)));
             if(hasHazardWithNextInstruction(instructionsP.get(i).instruction, instructionsP.get(i+1).instruction)){
-                instructionsWithNOPS.add(i+1, new Pair(null, new Instruction(InstType.NOP)));
+                instructionsWithNOPS.add(new Pair(null, new Instruction(InstType.NOP)));
             }
         }
         instructionsWithNOPS.add(new Pair(size-1, original.get(size-1)));
@@ -141,16 +144,40 @@ public class Parser {
         // now compare both lists and adjust offsets of jump and branch instructions
         for (int i = 0; i < instructionsP.size(); i++) {
             Instruction curr = instructionsP.get(i).instruction;
-            if(curr.type == InstType.JR || curr.type == InstType.BEQZ ) {
-                int id = getIdOfTheDestinationInstruction(instructionsP, i);
+            if( curr.type == InstType.BEQZ ) {
+                Integer id = getIdOfTheDestinationInstruction(instructionsP, i);
+                boolean foundTarget = false;
                 // set the new offset of corresponding destination offset
                 for(int j = 0; j < instructionsWithNOPS.size(); j++){
-                    if(instructionsWithNOPS.get(j).id == id){
-                        setJRorBEQZinstructionWithNewOffset(instructionsWithNOPS, i, j);
+                    if(id.equals(instructionsWithNOPS.get(j).id)){
+                        setBEQZinstructionWithNewOffset(instructionsWithNOPS, i, j);
+                        foundTarget = true;
                         break;
                     }
                 }
-            }
+                if(!foundTarget) {
+                	//branch to an instruction that doesn't exist
+                	instructionsWithNOPS.get(i).instruction.imm = (byte) (instructionsWithNOPS.size() + 1);
+                }
+            } 
+//                else if (curr.type == InstType.JR ) {
+//                Integer id = getIdOfTheDestinationInstruction(instructionsP, i);
+//                boolean foundTarget = false;
+//            	// set the new offset of corresponding destination offset
+//                for(int j = 0; j < instructionsWithNOPS.size(); j++){
+//                    if(id.equals(instructionsWithNOPS.get(j).id))  {
+//                        setJRinstructionWithNewValue(instructionsWithNOPS, i, j);
+//                        foundTarget = true;
+//                        break;
+//                    }
+//                }
+//                if(!foundTarget) {
+//                	//jump to an instruction that doesn't exist
+//                	instructionsWithNOPS.get(i).instruction.reg1 = splitConcatination(instructionsWithNOPS.size() + 1)[0]; 
+//                	instructionsWithNOPS.get(i).instruction.reg2 = splitConcatination(instructionsWithNOPS.size() + 1)[1];
+//                }
+//				
+//			}
         }
 
 
@@ -171,21 +198,36 @@ public class Parser {
 
     private int getIdOfTheDestinationInstruction(ArrayList<Pair> instructionsP, int curr) {
         Instruction inst = instructionsP.get(curr).instruction;
-        
+        if(inst.type == InstType.BEQZ) {
             return instructionsP.get(curr + inst.getImm()).id;
+        } else {
+			return instructionsP.get(Package2.concatenate((byte)instructionsP.get(curr).instruction.reg1 , (byte)instructionsP.get(curr).instruction.reg2)).id;
+		}
 
         
         // return 0;
     }
 
-    private void setJRorBEQZinstructionWithNewOffset(ArrayList<Pair> instructionsNOPS, int instID, int newPlace){
-        for (int i = 0; i < instructionsNOPS.size(); i++) {
-            if(instructionsNOPS.get(i).id == instID){
-                instructionsNOPS.get(i).instruction.setImm((byte) (newPlace - i));
+    private void setBEQZinstructionWithNewOffset(ArrayList<Pair> instructionsNOPS, int instID, int newPlace){
+        Integer insID = instID;
+    	for (int i = 0; i < instructionsNOPS.size(); i++) {
+            if(insID.equals(instructionsNOPS.get(i).id)) {
+                instructionsNOPS.get(i).instruction.setImm((byte) (newPlace - i - 1));
                 break;
             }
         }
     }
+    
+//    private void setJRinstructionWithNewValue(ArrayList<Pair> instructionsNOPS, int instID, int newPlace){
+//        Integer insID = instID;
+//    	for (int i = 0; i < instructionsNOPS.size(); i++) {
+//            if(insID.equals(instructionsNOPS.get(i).id)) {
+//                instructionsNOPS.get(i).instruction.setReg1( splitConcatination(newPlace)[0] );
+//                instructionsNOPS.get(i).instruction.setReg2( splitConcatination(newPlace)[1] );
+//                break;
+//            }
+//        }
+//    }
     private boolean hasHazardWithNextInstruction(Instruction curr, Instruction next){
 
         //before adding check for hazards where i1.r1 = i2.r2 and type R-Type in case not SB
@@ -214,6 +256,14 @@ public class Parser {
 
         return false;
     }
+    
+    public static byte[] splitConcatination(int num) {
+		byte[] b = new byte[2];
+		
+		b[1] = (byte) (0b011 & num);
+		b[0] = (byte) (num>> 2);
+		return b;
+	}
 
 
 
@@ -226,7 +276,7 @@ public class Parser {
 	}
     
     public static void main(String[] args) {
-		Parser p = new Parser();
+		Parser p = new Parser(true);
 		System.out.println(p);
 		
 	}
