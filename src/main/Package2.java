@@ -120,7 +120,8 @@ public class Package2 {
     	oldPC++;
     	int i;
 		for(i=0; i<instructionMemory.length &&  oldPC!=0; i++) {
-			if(instructionMemory[i]>>12 !=  0b1111) {
+			int che = instructionMemory[i]>>12;
+			if(che !=  0b1111 && che != -1) {
 				oldPC--;
 			}
 		}

@@ -146,6 +146,16 @@ public class Parser {
             Instruction curr = instructionsP.get(i).instruction;
             if( curr.type == InstType.BEQZ ) {
                 Integer id = getIdOfTheDestinationInstruction(instructionsP, i);
+                if(id < 0){
+                    for( int j = 0; j<instructionsWithNOPS.size(); j++){
+                        Integer ii = i;
+                        if(ii.equals(instructionsWithNOPS.get(j).id)){
+                            instructionsWithNOPS.get(j).instruction.setImm((byte)(instructionsWithNOPS.size()+1));
+                            break;
+                        }
+                    }
+                    continue;
+                }
                 boolean foundTarget = false;
                 // set the new offset of corresponding destination offset
                 for(int j = 0; j < instructionsWithNOPS.size(); j++){
@@ -199,13 +209,17 @@ public class Parser {
     private int getIdOfTheDestinationInstruction(ArrayList<Pair> instructionsP, int curr) {
         Instruction inst = instructionsP.get(curr).instruction;
         if(inst.type == InstType.BEQZ) {
+            if(curr + inst.getImm() >= instructionsP.size() || curr + inst.getImm() < 0) 
+                return -1;
+
             return instructionsP.get(curr + inst.getImm()).id;
-        } else {
-			return instructionsP.get(Package2.concatenate((byte)instructionsP.get(curr).instruction.reg1 , (byte)instructionsP.get(curr).instruction.reg2)).id;
-		}
+        } 
+        // else {
+			// return instructionsP.get(Package2.concatenate((byte)instructionsP.get(curr).instruction.reg1 , (byte)instructionsP.get(curr).instruction.reg2)).id;
+		// }
 
         
-        // return 0;
+        return -1;
     }
 
     private void setBEQZinstructionWithNewOffset(ArrayList<Pair> instructionsNOPS, int instID, int newPlace){
