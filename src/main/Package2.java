@@ -13,22 +13,17 @@ public class Package2 {
     static Vector<Object> values = new Vector<>();
     static int pcCopy = 0;
     static boolean reset = false;
-    private static final boolean HAZARDS_DETECTION_ENABLED = false;
+    private static final boolean HAZARDS_DETECTION_ENABLED = true;
 
-    /*static {
+    static {
         registers[10] =3;
         loadData();
         pipeline();
         
         
         //Printing all Registers and SREG and Instruction and Data Memory Locations
-        for(int i = 0; i< registers.length; i++) System.out.println("R" + i + ": "+ registers[i]);
-        System.out.println("PC: "+ pc);
-        System.out.println("SREG: "+byteToBinary(SREG));
-        for(int i = 0; i< instructionMemory.length; i++) System.out.println("Instruction " + i + ": "+ instructionMemory[i]);
-        for(int i = 0; i< dataMemory.length; i++) System.out.println("Data memory address " + i + ": "+ dataMemory[i]);
-        
-    }*/
+
+    }
     public static void loadData(){
         Parser p = new Parser(HAZARDS_DETECTION_ENABLED);
 
@@ -55,11 +50,17 @@ public class Package2 {
             if(values.size()>0){
                 System.out.println("Executing instruction: "+((short)values.get(1) - 1));
                 execute(((byte[]) values.get(0))[0], ((byte[]) values.get(0))[1], ((byte[]) values.get(0))[2], ((byte[]) values.get(0))[3], ((byte[]) values.get(0))[4], (short) values.get(1));
+                System.out.println("SREG: "+byteToBinary(SREG));
             }
             System.out.println();
             if(reset){instruction=null; values = new Vector<>();}
             else{instruction = tempInstruction; values = tempValues;}
         }
+        for(int i = 0; i< registers.length; i++) System.out.println("R" + i + ": "+ registers[i]);
+        System.out.println("PC: "+ pc);
+        System.out.println("SREG: "+byteToBinary(SREG));
+        for(int i = 0; i< instructionMemory.length; i++) System.out.println("Instruction " + i + ": "+ instructionMemory[i]);
+        for(int i = 0; i< dataMemory.length; i++) System.out.println("Data memory address " + i + ": "+ dataMemory[i]);
     }
 
     public static short[] fetch(){
@@ -92,7 +93,7 @@ public class Package2 {
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 3: registers[r1]=(byte)r2orImm;
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
-            case 4: if(inR1==0){pc = (byte) (pcOld+r2orImm); pcCopy = pc; reset = true; System.out.println("PC"+pc+" has been changed to: "+ pc);}break;
+            case 4: if(inR1==0){pc = (byte) (pcOld+r2orImm); pcCopy = pc; reset = true; System.out.println("PC has been changed to: "+ pc);}break;
             case 5: registers[r1] = (byte)(inR1 & inR2); updateNegAndZero(registers[r1]);
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 6: registers[r1] = (byte)(inR1 | inR2); updateNegAndZero(registers[r1]);
@@ -102,7 +103,7 @@ public class Package2 {
             		pc = setPCWithNewAddress(pc);
             		pcCopy = pc;
             	}
-            	System.out.println("PC"+pc+" has been changed to: "+ pc);break;
+            	System.out.println("PC has been changed to: "+ pc);break;
             case 8: registers[r1] = (byte)(((inR1 & 0xFF)<<r2orImm) | ((inR1 & 0xFF)>>>(8- r2orImm))); updateNegAndZero(registers[r1]); 
             	System.out.println("R"+r1+" has been changed to: "+ registers[r1]);break;
             case 9: registers[r1] = (byte)(((inR1 & 0xFF)>>> r2orImm) | ((inR1 & 0xFF)<<(8- r2orImm))); updateNegAndZero(registers[r1]);
@@ -123,7 +124,7 @@ public class Package2 {
 				oldPC--;
 			}
 		}
-		return (short)i;
+		return (short)(i-1);
 	}
 	private static void updateCarry(byte a, byte b, short result){
         int carry = ((result & 0b0000000100000000) >>> 8);

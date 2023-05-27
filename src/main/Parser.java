@@ -212,7 +212,7 @@ public class Parser {
         Integer insID = instID;
     	for (int i = 0; i < instructionsNOPS.size(); i++) {
             if(insID.equals(instructionsNOPS.get(i).id)) {
-                instructionsNOPS.get(i).instruction.setImm((byte) (newPlace - i - 1));
+                instructionsNOPS.get(i).instruction.setImm((byte) (newPlace - i));
                 break;
             }
         }
