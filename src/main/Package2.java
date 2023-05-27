@@ -13,17 +13,8 @@ public class Package2 {
     static Vector<Object> values = new Vector<>();
     static int pcCopy = 0;
     static boolean reset = false;
-    private static final boolean HAZARDS_DETECTION_ENABLED = true;
+    private static final boolean HAZARDS_DETECTION_ENABLED = false;
 
-    static {
-        registers[10] =3;
-        loadData();
-        pipeline();
-        
-        
-        //Printing all Registers and SREG and Instruction and Data Memory Locations
-
-    }
     public static void loadData(){
         Parser p = new Parser(HAZARDS_DETECTION_ENABLED);
 
@@ -70,6 +61,7 @@ public class Package2 {
     }
 
     public static Vector decode(short[] instruction){
+        System.out.println("Parameters passed to decode: instruction "+instruction[0]);
         byte opcode = (byte) ((instruction[0] & 0b1111000000000000) >>> 12);  // bits 15:12
         byte R1 = (byte) ((instruction[0] & 0b0000111111000000) >>> 6); // 11:6
         byte inR1 = registers[R1];
@@ -83,6 +75,7 @@ public class Package2 {
     }
 
     public static void execute(byte opcode, short r1 ,short r2orImm, byte inR1, byte inR2, short pcOld){
+        System.out.println("Parameters passed to execute: opcode "+opcode+", 1st register "+r1+", immediate "+r2orImm+", value in 1st register "+inR1+", value in 2nd register "+inR2);
         SREG = 0;
         switch (opcode){
             case 0: registers[r1] = add(inR1, inR2);
@@ -186,46 +179,8 @@ public class Package2 {
     }
     
     public static void main (String[]args){
-//        System.out.println(Short.parseShort("1000000001000110", 2));
-//        System.out.println(Integer.toBinaryString(-1));
-//          pipeline();
-//        registers[0] = (byte) 0b01000000;
-//        registers[1] = (byte) -128;
-//        dataMemory[0] = (byte) 5;
-//        
-//        pipeline();
-        
-        
-//        execute((byte)0, (byte)0, (byte)1);
-//        System.out.println("add:");
-//        System.out.println(registers[0]);
-//        System.out.println(Integer.toBinaryString(SREG));
-//        registers[0] = (byte) -127; //11111101
-//        registers[1] = (byte) 64;
-//        dataMemory[0] = (byte) 4;
-//        execute((byte)8, (byte)0, (byte)1);
-//        System.out.println("slc:");
-//        System.out.println(registers[0]);
-//        System.out.println(Integer.toBinaryString(SREG));
-//        registers[0] = (byte) -127; // 11000000
-//        registers[1] = (byte) 64;
-//        execute((byte)9, (byte)0, (byte)1);
-//        System.out.println("src:");
-//        System.out.println(registers[0]);
-//        System.out.println(Integer.toBinaryString(SREG));
-//        registers[0] = (byte) -64;
-//        registers[1] = (byte) 64;
-//        execute((byte)10, (byte)0, (byte)0);
-//        System.out.println("lb:");
-//        System.out.println(registers[0]);
-//        System.out.println(Integer.toBinaryString(SREG));
-//        registers[0] = (byte) -64;
-//        registers[1] = (byte) 64;
-//        execute((byte)11, (byte)0, (byte)0);
-//        System.out.println("sb:");
-//        System.out.println(dataMemory[0]);
-//        System.out.println(Integer.toBinaryString(SREG));
-
+        loadData();
+        pipeline();
     }
 }
 
