@@ -66,9 +66,14 @@ public class Instruction {
     private String generateImm(){
         String imm = Integer.toBinaryString(this.imm);
         while(imm.length()<6){
-            imm = "0" + imm;
+            if(this.imm>=0)
+                imm = "0" + imm;
+            else
+                imm = "1" + imm;
         }
-        if(imm.length() > 6)    imm = imm.substring(0, 6);
+        while(imm.length() > 6) {
+            imm = imm.substring(1);
+        }
         return imm;
     }
 

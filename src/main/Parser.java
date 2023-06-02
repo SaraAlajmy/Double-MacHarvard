@@ -18,9 +18,7 @@ public class Parser {
         this.HAZARDSavoidance = HAZARDSavoidance;
         readFromTextFileToInstructionList();
     }
-    // public ArrayList<Instruction> getGeneratedInstructions() {
-    //     return instructions;
-    // }
+
     public ArrayList<String> getBinaryInstructions() {
         return binaryInstructions;
     }

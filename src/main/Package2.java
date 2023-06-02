@@ -13,7 +13,7 @@ public class Package2 {
     static Vector<Object> values = new Vector<>();
     static int pcCopy = 0;
     static boolean reset = false;
-    private static final boolean HAZARDS_DETECTION_ENABLED = false;
+    private static final boolean HAZARDS_DETECTION_ENABLED = true;
 
     public static void loadData(){
         Parser p = new Parser(HAZARDS_DETECTION_ENABLED);
@@ -61,17 +61,24 @@ public class Package2 {
     }
 
     public static Vector decode(short[] instruction){
-        System.out.println("Parameters passed to decode: instruction "+instruction[0]);
+        String instructionString = Integer.toBinaryString(instruction[0]);
+        while(instructionString.length()<16){
+            instructionString = "0"+ instructionString;
+        }
+        System.out.println("Parameters passed to decode: instruction "+instructionString);
         byte opcode = (byte) ((instruction[0] & 0b1111000000000000) >>> 12);  // bits 15:12
         byte R1 = (byte) ((instruction[0] & 0b0000111111000000) >>> 6); // 11:6
         byte inR1 = registers[R1];
         byte R2orImm= (byte) (instruction[0] & 0b0000000000111111); //6:0
         byte inR2 = registers[R2orImm];
+        if(opcode== 3 ||  opcode== 4 || opcode>=8){
+            if((R2orImm>>5)%2 ==1)
+                R2orImm= (byte)(R2orImm | 0b11000000);}
         Vector<Object> result = new Vector<>();
         result.add(new byte[]{opcode, R1, R2orImm, inR1, inR2});
         result.add(instruction[1]);
         return result;
-        // excute(opcode,R1, R2orImm, inR1, inR2);
+        // excute(opcode,R1, R2orImm, inR1, inR2); 3 4 8 9 10 11
     }
 
     public static void execute(byte opcode, short r1 ,short r2orImm, byte inR1, byte inR2, short pcOld){
